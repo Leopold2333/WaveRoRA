@@ -18,4 +18,10 @@
 # Getting Start🛫
 # Datasets🔗
 # Acknowledgements🙏
+We are really thankful for the authors of [**pytorch_wavelets**](https://github.com/fbcotter/pytorch_wavelets) and the following awesome works when implementing WaveRoRA.
+
+[**iTransformer**](https://github.com/thuml/iTransformer)
+
+[**RoFormer**](https://github.com/ZhuiyiTechnology/roformer)
+
 # Citation🙂
