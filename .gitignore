@@ -1,0 +1,13 @@
+.vscode
+/data
+/checkpoints
+/results
+/predictions
+**/__pycache__/
+/logs
+
+test.py
+predict.py
+
+*.log
+*.pdf
