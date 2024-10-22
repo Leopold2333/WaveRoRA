@@ -505,17 +505,19 @@ class RouterAttention(nn.Module):
 
         d_keys = d_model // n_heads
         d_values = d_model // n_heads
+
         self.query_projection = nn.Linear(d_model, d_keys * n_heads)
         self.key_projection = nn.Linear(d_model, d_keys * n_heads)
+
         if self.residual:
-            self.value_projection = nn.Linear(d_values * n_heads, d_model)
+            self.skip_projection = nn.Linear(d_values * n_heads, d_model)
         if self.rotary:
             self.rope = RoPE1d(feature_dim=d_model, reverse=True)
 
         self.drop1 = nn.Dropout(attention_dropout)
         self.drop2 = nn.Dropout(attention_dropout)
         
-        # self.router_proj = nn.AdaptiveAvgPool1d(output_size=agent_num)
+        # self.agent_proj = nn.AdaptiveAvgPool1d(output_size=agent_num)
         self.router_proj = nn.Parameter(torch.randn(router_num, d_model))
         if self.gate:
             self.z_projection = nn.Linear(d_model, d_model)
@@ -523,12 +525,14 @@ class RouterAttention(nn.Module):
 
     def forward(self, x, *args, **kwargs):
         # [B, L, D]
-        queries = self.query_projection(x)
-        keys = self.key_projection(x)
         if self.gate:
             z = self.act(self.z_projection(x))
+
+        queries = self.query_projection(x)
+        keys = self.key_projection(x)
+        
         # [B, L, D] -> [B, a, D]
-        # routers = self.router_proj(queries.permute(0, 2, 1)).permute(0, 2, 1)
+        # agents = self.agent_proj(queries.permute(0, 2, 1)).permute(0, 2, 1)
         routers = self.router_proj.repeat(x.shape[0], 1, 1)
 
         if self.rotary:
@@ -541,7 +545,7 @@ class RouterAttention(nn.Module):
         q = rearrange(q,        "B L (H E) -> B H L E", H=self.n_heads)
         k = rearrange(k,        "B S (H E) -> B H S E", H=self.n_heads)
         v = rearrange(x,        "B S (H D) -> B H S D", H=self.n_heads)
-        r = rearrange(routers,   "B a (H E) -> B H a E", H=self.n_heads)
+        r = rearrange(routers,  "B a (H E) -> B H a E", H=self.n_heads)
 
         scale = 1. / math.sqrt(k.shape[-1])
         agent_scores = torch.einsum("BHAE, BHSE -> BHAS", r, k)
@@ -554,7 +558,7 @@ class RouterAttention(nn.Module):
         V = torch.einsum("BHLA, BHAD -> BHLD", q_A, agent_V)
         V = rearrange(V, "B H L D -> B L (H D)")
         if self.residual:
-            V = V + self.value_projection(x)
+            V = V + self.skip_projection(x)
         if self.gate:
             V = V * z
         return V, None
