@@ -3,7 +3,7 @@ from configs import add_linear_parser, add_transformer_parser, add_patch_parser,
                     add_wavelet_parser, add_cnn_parser, add_decompose_parser
 
 model_parser_dict={
-    'WaveFormer': [add_transformer_parser, add_wavelet_parser],
+    'WaveRoRA': [add_transformer_parser, add_wavelet_parser],
     'MAWNO': [add_transformer_parser],
     'iTransformer': [add_transformer_parser],
     'PatchTST': [add_transformer_parser, add_patch_parser, add_decompose_parser],

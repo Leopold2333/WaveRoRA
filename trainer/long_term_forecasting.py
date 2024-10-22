@@ -9,10 +9,10 @@ import matplotlib.pyplot as plt
 from utils.tools import EarlyStopping, adjust_learning_rate
 from utils.loss import get_loss_MSE, get_loss_MAE, get_loss_MAPE
 
-from models import WaveFormer, iTransformer, PatchTST, DLinear
+from models import WaveRoRA, iTransformer, PatchTST, DLinear
 
 models_dict={
-    'WaveFormer': WaveFormer,
+    'WaveRoRA': WaveRoRA,
     'iTransformer': iTransformer,
     'PatchTST': PatchTST,
     'DLinear': DLinear
