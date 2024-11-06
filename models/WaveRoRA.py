@@ -15,7 +15,7 @@ class Model(nn.Module):
         self.embed_type = configs.embed_type
         self.domain = configs.domain
         router_num = configs.router_num if hasattr(configs, 'router_num') and configs.router_num != 0 \
-            else int(math.log2(configs.enc_in) + math.sqrt(configs.enc_in)) // 2
+            else int(math.sqrt(configs.enc_in))
         
         if configs.domain == 'W':
             self.dwt = DWT1D(J=configs.wavelet_layers, wave=configs.wavelet_type, mode=configs.wavelet_mode)

@@ -6,7 +6,7 @@ def add_mamba_parser(parser):
     
     # mamba block
     parser.add_argument('--bi_dir',         type=int,       default=0,          help='use bidirectional Mamba?')
-    parser.add_argument('--d_state',        type=int,       default=32,         help='d_state parameter of Mamba')
+    parser.add_argument('--d_state',        type=int,       default=16,         help='d_state parameter of Mamba')
     parser.add_argument('--d_conv',         type=int,       default=2,          help='d_conv parameter of Mamba')
     parser.add_argument('--e_fact',         type=int,       default=1,          help='expand factor parameter of Mamba')
 

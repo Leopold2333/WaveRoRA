@@ -7,7 +7,8 @@ model_parser_dict={
     'MAWNO': [add_transformer_parser],
     'iTransformer': [add_transformer_parser],
     'PatchTST': [add_transformer_parser, add_patch_parser, add_decompose_parser],
-    'DLinear': [add_linear_parser]
+    'DLinear': [add_linear_parser],
+    'MambaFormer': [add_transformer_parser, add_mamba_parser]
 }
 
 def model_basic_parsers(parser):

@@ -43,6 +43,14 @@ def get_loss_MAPE(preds, labels, null_val=np.nan):
     loss = torch.where(torch.isnan(loss), torch.zeros_like(loss), loss)
     return torch.mean(loss)
 
+def get_loss_sMAPE(preds, labels, null_val=np.nan):
+    mask = get_MASK(labels=labels, null_val=null_val)
+    mask = torch.where(torch.isnan(mask), torch.zeros_like(mask), mask)
+    loss = torch.abs(preds-labels) * 2 / (torch.abs(preds) + torch.abs(labels) + 1e-6) * 100
+    loss = loss * mask
+    loss = torch.where(torch.isnan(loss), torch.zeros_like(loss), loss)
+    return torch.mean(loss)
+
 
 def get_loss_HUBER(preds, labels, threshold, null_val=np.nan):
     mask = get_MASK(labels=labels, null_val=null_val)

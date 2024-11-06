@@ -12,6 +12,7 @@ from utils.loss import get_loss_MSE, get_loss_MAE, get_loss_MAPE
 from models import WaveRoRA, iTransformer, PatchTST, DLinear
 
 models_dict={
+    # 'MAWNO': MAWNO,
     'WaveRoRA': WaveRoRA,
     'iTransformer': iTransformer,
     'PatchTST': PatchTST,

@@ -521,7 +521,7 @@ class RouterAttention(nn.Module):
         self.router_proj = nn.Parameter(torch.randn(router_num, d_model))
         if self.gate:
             self.z_projection = nn.Linear(d_model, d_model)
-            self.act = nn.SiLU()
+            self.act = nn.SELU()
 
     def forward(self, x, *args, **kwargs):
         # [B, L, D]
