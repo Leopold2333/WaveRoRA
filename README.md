@@ -8,15 +8,21 @@
 🚩**News**(Oct 17, 2024): We upload the code to Github. The repo is currently private.
 
 # Key Designs of the proposed WaveRoRA🔑
-🤠 We propose a deep architecture to process time series data in Wavelet domain. We decompose time series into multi-scale wavelet coefficients through Discrete Wavelet Transform (DWT) and use deep models to capture intra- and inter-series dependencies.
+🤠 We propose a deep architecture to process time series data in the **wavelet domain**. We decompose time series into multi-scale wavelet coefficients through Discrete Wavelet Transform (DWT) and use deep models to capture intra- and inter-series dependencies.
 
-🤠 We propose a novel Rotary Router Attention (RoRA) mechanism. Compared to vanilla Softmax Attention, RoRA utilizes rotary position embedding (RoPE) to model the relative position information between different sequence elements. In addition, RoRA introduces a fixed number of router tokens $a$ to aggregate information from $KV$ matrices and reassign it to $Q$ matrix. RoRA achieves a good balance between computational efficiency and the ability to capture global dependencies.
+🤠 We propose a novel Rotary Router Attention (RoRA) mechanism. Compared to vanilla Softmax Attention, RoRA utilizes rotary position embedding (RoPE) to model the relative position information between different sequence elements. In addition, RoRA introduces a fixed number of router tokens $R$ to aggregate information from $KV$ matrices and reassign it to $Q$ matrix. RoRA achieves a good balance between computational efficiency and the ability to capture global dependencies.
 
 🤠 We conduct extensive experiments and find that transfering other deep model architectures to wavelet domain also leads to better predicting results.
 
 # Results✅
+
+
 # Getting Start🛫
+Create the following paths before you want to run one of the model: `./logs/LTSF/${model_name}/`. Then, run `./scripts/LTSF/${model_name}/${dataset}.sh`.
+
 # Datasets🔗
+We have compiled the datasets we need to use and provide download link: [data.zip](https://drive.google.com/file/d/1krbMHQXB-aV9vvYs2bRsJnXPLa4BKxzG/view?usp=drive_link).
+
 # Acknowledgements🙏
 We are really thankful for the authors of [**pytorch_wavelets**](https://github.com/fbcotter/pytorch_wavelets) and the following awesome works when implementing WaveRoRA.
 
@@ -25,3 +31,11 @@ We are really thankful for the authors of [**pytorch_wavelets**](https://github.
 [**RoFormer**](https://github.com/ZhuiyiTechnology/roformer)
 
 # Citation🙂
+```
+@article{liang2024waverora,
+  title={WaveRoRA: Wavelet Rotary Route Attention for Multivariate Time Series Forecasting},
+  author={Liang, Aobo and Sun, Yan},
+  journal={arXiv preprint arXiv:2410.22649},
+  year={2024}
+}
+```
