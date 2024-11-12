@@ -8,6 +8,7 @@ class RoPE1d(nn.Module):
     def __init__(self, feature_dim, reverse=False, base=10000):
         super(RoPE1d, self).__init__()
         # L, D
+        self.reverse = reverse
         k_max = feature_dim // 2
 
         assert feature_dim % k_max == 0
@@ -25,7 +26,10 @@ class RoPE1d(nn.Module):
 
     def forward(self, x):
         # x: [B, L, D] -> [B, L, D/2]
-        x = torch.view_as_complex(x.reshape(*x.shape[:-1], -1, 2))
-        pe_x = torch.view_as_complex(self.rotations[:x.shape[1]]) * x
+        x = torch.view_as_complex(x.reshape(*x.shape[:-1], -1, 2).contiguous())
+        if self.reverse:
+            rotation = torch.view_as_complex(self.rotations[-x.shape[-2]:])
+        else:
+            rotation = torch.view_as_complex(self.rotations[:x.shape[-2]])
+        pe_x = rotation * x
         return torch.view_as_real(pe_x).flatten(-2)
-

@@ -512,16 +512,16 @@ class RouterAttention(nn.Module):
         if self.residual:
             self.skip_projection = nn.Linear(d_values * n_heads, d_model)
         if self.rotary:
-            self.rope = RoPE1d(feature_dim=d_model, reverse=True)
+            self.rope = RoPE1d(feature_dim=router_num, reverse=False)
 
         self.drop1 = nn.Dropout(attention_dropout)
         self.drop2 = nn.Dropout(attention_dropout)
         
-        # self.agent_proj = nn.AdaptiveAvgPool1d(output_size=agent_num)
+        # self.router_proj = nn.AdaptiveAvgPool1d(output_size=agent_num)
         self.router_proj = nn.Parameter(torch.randn(router_num, d_model))
         if self.gate:
             self.z_projection = nn.Linear(d_model, d_model)
-            self.act = nn.SELU()
+            self.act = nn.SiLU()
 
     def forward(self, x, *args, **kwargs):
         # [B, L, D]
@@ -532,30 +532,29 @@ class RouterAttention(nn.Module):
         keys = self.key_projection(x)
         
         # [B, L, D] -> [B, a, D]
-        # agents = self.agent_proj(queries.permute(0, 2, 1)).permute(0, 2, 1)
+        # routers = self.router_proj(queries.permute(0, 2, 1)).permute(0, 2, 1)
         routers = self.router_proj.repeat(x.shape[0], 1, 1)
 
-        if self.rotary:
-            q = self.rope(queries)
-            k = self.rope(keys)
-        else:
-            q = queries
-            k = keys
-
-        q = rearrange(q,        "B L (H E) -> B H L E", H=self.n_heads)
-        k = rearrange(k,        "B S (H E) -> B H S E", H=self.n_heads)
+        q = rearrange(queries,  "B L (H E) -> B H L E", H=self.n_heads)
+        k = rearrange(keys,     "B S (H E) -> B H S E", H=self.n_heads)
         v = rearrange(x,        "B S (H D) -> B H S D", H=self.n_heads)
-        r = rearrange(routers,  "B a (H E) -> B H a E", H=self.n_heads)
+        r = rearrange(routers,  "B r (H E) -> B H r E", H=self.n_heads)
 
         scale = 1. / math.sqrt(k.shape[-1])
-        agent_scores = torch.einsum("BHAE, BHSE -> BHAS", r, k)
-        agent_A = self.drop1(torch.softmax(scale * agent_scores, dim=-1))
-        agent_V = torch.einsum("BHAS, BHSD -> BHAD", agent_A, v)
+        router_scores = torch.einsum("BHrE, BHSE -> BHrS", r, k)
+        router_A = torch.softmax(scale * router_scores, dim=-1)
+        if self.rotary:
+            router_A = self.rope(router_A.transpose(-1, -2)).transpose(-1, -2)
+        router_A = self.drop1(router_A)
+        router_V = torch.einsum("BHrS, BHSD -> BHrD", router_A, v)
 
         scale = 1. / math.sqrt(q.shape[-1])
-        q_scores = torch.einsum("BHLE, BHAE -> BHLA", q, r)
-        q_A = self.drop2(torch.softmax(scale * q_scores, dim=-1))
-        V = torch.einsum("BHLA, BHAD -> BHLD", q_A, agent_V)
+        q_scores = torch.einsum("BHLE, BHrE -> BHLr", q, r)
+        q_A = torch.softmax(scale * q_scores, dim=-1)
+        if self.rotary:
+            q_A = self.rope(q_A)
+        q_A = self.drop2(q_A)
+        V = torch.einsum("BHLr, BHrD -> BHLD", q_A, router_V)
         V = rearrange(V, "B H L D -> B L (H D)")
         if self.residual:
             V = V + self.skip_projection(x)

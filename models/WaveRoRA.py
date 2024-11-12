@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import math
 from layers.Transformer_EncDec import Encoder, EncoderLayer, AttentionLayer
-from layers.WaveFormer_layer import WEncoderLayer
+from layers.WaveRoRA_layer import WEncoderLayer
 from pytorch_wavelets import DWT1D, IDWT1D
 from layers.Attention import RouterAttention, LinearAttention, FullAttention
 
@@ -16,6 +16,8 @@ class Model(nn.Module):
         self.domain = configs.domain
         router_num = configs.router_num if hasattr(configs, 'router_num') and configs.router_num != 0 \
             else int(math.sqrt(configs.enc_in))
+        if router_num % 2 != 0:
+            router_num += 1
         
         if configs.domain == 'W':
             self.dwt = DWT1D(J=configs.wavelet_layers, wave=configs.wavelet_type, mode=configs.wavelet_mode)
