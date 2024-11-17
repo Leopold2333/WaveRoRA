@@ -12,7 +12,6 @@ from utils.loss import get_loss_MSE, get_loss_MAE, get_loss_MAPE
 from models import WaveRoRA, iTransformer, PatchTST, DLinear
 
 models_dict={
-    # 'MAWNO': MAWNO,
     'WaveRoRA': WaveRoRA,
     'iTransformer': iTransformer,
     'PatchTST': PatchTST,
@@ -226,6 +225,10 @@ class LTSF_Trainer():
     def test(self, test_loader, test_dataset):
         print('>>>>>>>start testing : {}>>>>>>>>>>>>>>>>>>>>>>>>>>'.format(self.setting))
         self.model.load_state_dict(torch.load(os.path.join(self.c_path, "checkpoint.pth"), map_location=self.args.device))
+        # model = torch.load("/home/WaveRoRA/checkpoints/2025/traffic(M)_96_192_loss(mse)/WaveRoRA_bs32_el3_(dm512+df256)_nh8_dp0.10_(4-64-sym3)/checkpoint.pth", map_location="cuda:0")
+        # new_model = self.model.state_dict()
+        # self.model.load_state_dict(new_model)
+
         self.model.eval()
         preds = []
         trues = []

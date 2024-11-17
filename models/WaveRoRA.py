@@ -15,7 +15,7 @@ class Model(nn.Module):
         self.embed_type = configs.embed_type
         self.domain = configs.domain
         router_num = configs.router_num if hasattr(configs, 'router_num') and configs.router_num != 0 \
-            else int(math.sqrt(configs.enc_in))
+            else int(math.sqrt(configs.enc_in) + math.log2(configs.enc_in)) // 2
         if router_num % 2 != 0:
             router_num += 1
         
@@ -49,15 +49,16 @@ class Model(nn.Module):
                         configs.d_model
                     ) if configs.attn_type == 'LA' else
                     RouterAttention(router_num=router_num, 
-                                d_model=configs.d_model,
-                                n_heads=configs.n_heads, 
-                                rotary=configs.rotary,
-                                residual=configs.residual,
-                                gate=configs.gate,
-                                attention_dropout=configs.dropout),
+                                    d_model=configs.d_model,
+                                    n_heads=configs.n_heads, 
+                                    rotary=configs.rotary,
+                                    residual=configs.residual,
+                                    gate=configs.gate,
+                                    attention_dropout=configs.dropout),
                     d_model=configs.d_model,
                     d_ff=configs.d_ff,
                     expand=configs.wavelet_dim,
+                    ks=configs.ks,
                     dropout=configs.dropout,
                     activation=configs.activation,
                     batch_size=configs.batch_size,

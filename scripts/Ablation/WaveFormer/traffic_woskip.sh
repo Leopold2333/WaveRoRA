@@ -24,7 +24,7 @@ gpu=0
 
 is_training=$1
 
-for pred_len in 96 192
+for pred_len in 96 192 336 720
 do
     if [ "$pred_len" -eq 96 ]; then
         lr="2e-3"

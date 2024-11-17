@@ -7,7 +7,7 @@ def add_transformer_parser(parser):
     parser.add_argument('--e_layers',           type=int,   default=3,              help='num of encoder layers')
     parser.add_argument('--d_layers',           type=int,   default=4,              help='num of decoder layers')
     parser.add_argument('--d_ff',               type=int,   default=256,            help='dimension of fcn')
-    parser.add_argument('--factor',             type=int,   default=10,             help='attn factor')
+    parser.add_argument('--router_num',         type=int,   default=2,             help='router number')
     parser.add_argument('--distil',                         default=False, action='store_true', 
                         help='whether to use distilling in encoder for Crossformer and Informer')
     parser.add_argument('--dropout',            type=float, default=0.2,            help='dropout')
@@ -16,7 +16,7 @@ def add_transformer_parser(parser):
                         help='whether to output attention in ecoder')
     parser.add_argument('--rotary',                         default=False, action='store_true',
                         help='use rotary QK attention?')
-    parser.add_argument('--attn_type',          type=str,   default='AA',           help='SA: Softmax; LA: Linear; RA: Router')
+    parser.add_argument('--attn_type',          type=str,   default='RA',           help='SA: Softmax; LA: Linear; RA: Router')
     parser.add_argument('--residual',                       default=False, action='store_true',
                         help='residual connection?')
     parser.add_argument('--gate',                           default=False, action='store_true',
@@ -31,3 +31,5 @@ def add_transformer_parser(parser):
                                                                                       1: value + positional \
                                                                                       2: value + temporal \
                                                                                       3: value + positional + temporal')
+    # FFN
+    parser.add_argument('--ks',                 type=int,   default=1,              help='kernel size of conv1d in ffn')

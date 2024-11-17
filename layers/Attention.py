@@ -512,12 +512,13 @@ class RouterAttention(nn.Module):
         if self.residual:
             self.skip_projection = nn.Linear(d_values * n_heads, d_model)
         if self.rotary:
-            self.rope = RoPE1d(feature_dim=router_num, reverse=False)
+            self.rope = RoPE1d(feature_dim=router_num, reverse=True)
 
         self.drop1 = nn.Dropout(attention_dropout)
         self.drop2 = nn.Dropout(attention_dropout)
         
         # self.router_proj = nn.AdaptiveAvgPool1d(output_size=agent_num)
+        # self.router_proj = nn.Conv1d(seq_len, router_num, 3, 1, 1)
         self.router_proj = nn.Parameter(torch.randn(router_num, d_model))
         if self.gate:
             self.z_projection = nn.Linear(d_model, d_model)
@@ -533,6 +534,7 @@ class RouterAttention(nn.Module):
         
         # [B, L, D] -> [B, a, D]
         # routers = self.router_proj(queries.permute(0, 2, 1)).permute(0, 2, 1)
+        # routers = self.router_proj(x)
         routers = self.router_proj.repeat(x.shape[0], 1, 1)
 
         q = rearrange(queries,  "B L (H E) -> B H L E", H=self.n_heads)

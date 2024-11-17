@@ -7,6 +7,7 @@ class WEncoderLayer(nn.Module):
     def __init__(self, 
                  attention1,
                  d_model, d_ff=None, expand=64,
+                 ks=1,
                  dropout=0.1, activation="relu", 
                  batch_size=32, J=5):
         super(WEncoderLayer, self).__init__()
@@ -20,7 +21,7 @@ class WEncoderLayer(nn.Module):
         self.out_projection = nn.Linear(d_model, expand * (J + 1))
 
         self.wb = nn.ModuleList([
-            WaveNormBlock(d_model=expand, d_ff=d_ff, dropout=dropout, activation=activation)
+            WaveNormBlock(d_model=expand, d_ff=d_ff, kernel_size=ks, dropout=dropout, activation=activation)
             for _ in range(J+1)
         ])
         
@@ -46,10 +47,10 @@ class WEncoderLayer(nn.Module):
 
 
 class WaveNormBlock(nn.Module):
-    def __init__(self, d_model, d_ff, dropout, activation) -> None:
+    def __init__(self, d_model, d_ff, kernel_size, dropout, activation) -> None:
         super(WaveNormBlock, self).__init__()
-        self.conv1 = nn.Conv1d(in_channels=d_model, out_channels=d_ff, kernel_size=3, padding=1)
-        self.conv2 = nn.Conv1d(in_channels=d_ff, out_channels=d_model, kernel_size=3, padding=1)
+        self.conv1 = nn.Conv1d(in_channels=d_model, out_channels=d_ff, kernel_size=kernel_size, padding=kernel_size//2)
+        self.conv2 = nn.Conv1d(in_channels=d_ff, out_channels=d_model, kernel_size=kernel_size, padding=kernel_size//2)
         self.norm1 = nn.LayerNorm(d_model)
         self.norm2 = nn.LayerNorm(d_model)
         self.dropout = nn.Dropout(dropout)

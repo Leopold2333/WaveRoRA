@@ -3,13 +3,10 @@ import torch
 import random
 import numpy as np
 import optuna
-import os
 import sys
 from utils.model_params import model_parser_dict, model_basic_parsers
 from data_provider.dataloader import load_data
 from trainer.long_term_forecasting import LTSF_Trainer
-
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 def objective(trial, args, search_params, data):
     """
@@ -31,6 +28,8 @@ def objective(trial, args, search_params, data):
     # parameters settings
     args.learning_rate = trial.suggest_float("learning_rate", 0.0001, 0.0016, step=0.00007)
     args.dropout = trial.suggest_float("dropout", 0.2, 0.4, step=0.05)
+    # args.n_heads = trial.suggest_int("n_heads", 2, 16, step=2)
+    # args.wavelet_layers = trial.suggest_int("wavelet_layers", 2, 5, step=1)
     
     task = '{}({})_{}_{}_loss({})'.format(
         args.dataset_name,          # dataset
@@ -49,7 +48,7 @@ def objective(trial, args, search_params, data):
         f'_(dc{args.d_conv}+ds{args.d_state})' if hasattr(args, 'd_conv') else '',          # 5. mamba block
         f'_dp{args.dropout:.2f}' if hasattr(args, 'dropout') else '',           # 6. dropout
         f'_(pl{args.patch_len}+st{args.stride})' if hasattr(args, 'patch_len') else '',     # 7. patching
-        f'_({args.wavelet_layers}-{args.wavelet_type})' if hasattr(args, 'wavelet_type') else '',   # 8. wavelet
+        f'_({args.wavelet_layers}-{args.wavelet_dim}-{args.wavelet_type})' if hasattr(args, 'wavelet_type') else '',   # 8. wavelet
     )
 
     print(f'>>>>>> Searching Params <<<<<<')
@@ -61,7 +60,6 @@ def objective(trial, args, search_params, data):
 
     if args.is_training == 1:
         engine.train(data=data)
-        torch.cuda.empty_cache()
     if args.is_training >=0:
         mse = engine.test(test_loader=data['test_loader'], test_dataset=data['test'])
         return mse
@@ -89,14 +87,19 @@ if __name__ == '__main__':
 
     # Grad Searching
     search_space = {
-        "weather": {"learning_rate": [1e-4, 5e-5, 2e-4], "dropout": [0.1, 0.2, 0.3]},
-        "traffic": {"learning_rate": [1e-3, 1.5e-3, 8e-4], "dropout": [0.1, 0.2, 0.3]},
-        "electricity": {"learning_rate": [1e-3, 2e-4, 4e-4], "dropout": [0.1, 0.3, 0.2]},
+        "weather": {"learning_rate": [1e-4, 5e-5, 2e-4], "dropout": [0.1, 0.2, 0.3, 0.0]},
+        "traffic": {
+            "learning_rate": [1e-3, 1.5e-3, 8e-4], 
+            "dropout": [0.2, 0.3, 0.1],
+            # "n_heads": [8],
+            # "wavelet_layers": [1]
+        },
+        "electricity": {"learning_rate": [1e-3, 4e-4], "dropout": [0.2, 0.3, 0.1], "wavelet_layers": [1, 2, 3, 4, 5]},
         "ETTh1": {"learning_rate": [1e-4, 5e-5, 2e-5], "dropout": [0.1, 0.2, 0.3, 0.0]},
         "ETTh2": {"learning_rate": [1e-4, 5e-5, 2e-5], "dropout": [0.1, 0.2, 0.3, 0.0]},
         "ETTm1": {"learning_rate": [1e-4, 5e-5, 2e-5], "dropout": [0.1, 0.2, 0.3, 0.0]},
         "ETTm2": {"learning_rate": [1e-4, 5e-5, 2e-5], "dropout": [0.1, 0.2, 0.3, 0.0]},
-        "solar": {"learning_rate": [1e-3, 5e-4, 2e-4], "dropout": [0.1, 0.2, 0.3, 0.0]},
+        "solar": {"learning_rate": [5e-4, 2e-4], "dropout": [0.1, 0.2, 0.3, 0.0], "wavelet_layers": [0, 3, 5]},
     }
     params = list(search_space[args.dataset_name].keys())
     print('>>>>>> Args in experiment: <<<<<<')
@@ -109,7 +112,7 @@ if __name__ == '__main__':
                                 sampler=optuna.samplers.GridSampler(search_space[args.dataset_name]))
     # bind 'args' to 'objective' function
     objective_with_args = lambda trial: objective(trial, args, params, data)
-    study.optimize(objective_with_args, n_trials=12)
+    study.optimize(objective_with_args, n_trials=48)
     # print the best parameters and metrics
     print('Best parameters:', study.best_params)
     print('Best score:', study.best_value)

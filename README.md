@@ -15,7 +15,9 @@
 🤠 We conduct extensive experiments and find that transfering other deep model architectures to wavelet domain also leads to better predicting results.
 
 # Results✅
+WaveRoRA gets superior predicting performance. Compared to iTransformer, WaveRoRA reduces the MSE by 5.91% and MAE by 3.50% on average.
 
+![Main Results](figs/main.png "Main Results")
 
 # Getting Start🛫
 Create the following paths before you want to run one of the model: `./logs/LTSF/${model_name}/`. Then, run `./scripts/LTSF/${model_name}/${dataset}.sh`.

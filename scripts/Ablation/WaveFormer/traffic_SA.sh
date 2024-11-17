@@ -23,13 +23,13 @@ enc_in=862
 gpu=0
 
 lr="1e-3"
-dropout=0.3
+dropout=0.1
 
 is_training=$1
 
 for pred_len in 96
 do
-    log_file="${random_seed}(${dataset_name})_${model}(${seq_len}-${pred_len})_el${e_layers}.log"
+    log_file="logs/Ablation/${model}/${random_seed}(${dataset_name})_${model}(${seq_len}-${pred_len})_el${e_layers}.log"
     python $work_space $model --is_training=$is_training --gpu=$gpu \
     --num_workers=4 --seed=$random_seed --batch_size=$batch_size --loss=$loss \
     --seq_len=$seq_len --pred_len=$pred_len --enc_in=$enc_in --use_norm --embed_type=2 --attn_type=SA \
