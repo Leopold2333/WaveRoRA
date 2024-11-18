@@ -10,14 +10,24 @@
 # Key Designs of the proposed WaveRoRA🔑
 🤠 We propose a deep architecture to process time series data in the **wavelet domain**. We decompose time series into multi-scale wavelet coefficients through Discrete Wavelet Transform (DWT) and use deep models to capture intra- and inter-series dependencies.
 
-🤠 We propose a novel Rotary Router Attention (RoRA) mechanism. Compared to vanilla Softmax Attention, RoRA utilizes rotary position embedding (RoPE) to model the relative position information between different sequence elements. In addition, RoRA introduces a fixed number of router tokens $R$ to aggregate information from $KV$ matrices and reassign it to $Q$ matrix. RoRA achieves a good balance between computational efficiency and the ability to capture global dependencies.
+🤠 We propose a novel Rotary Router Attention (RoRA) mechanism. Compared to vanilla Softmax Attention, RoRA utilizes rotary positional embeddings (RoPE) to model the relative position information between different sequence elements. In addition, RoRA introduces a fixed number of router tokens $R\in\mathbb{R}^{r\times d}$ to aggregate information from $KV$ matrices and reassign it to $Q$ matrix. Note that $Q,K,V\in\mathbb{R}^{N\times d}$ where $N$ represents the sequence number and $d$ refers to the token dimension. We set $r\ll N$ so that RoRA achieves a good balance between computational efficiency and the ability to capture global dependencies.
 
 🤠 We conduct extensive experiments and find that transfering other deep model architectures to wavelet domain also leads to better predicting results.
 
+# Model Architecture
+![WaveRoRA](figs/arch.png "WaveRoRA")
+<div style="text-align: center;"><img src="figs/rora.png" alt="RoRA" width="50%"></div>
 # Results✅
+## Main Results
 WaveRoRA gets superior predicting performance. Compared to iTransformer, WaveRoRA reduces the MSE by 5.91% and MAE by 3.50% on average.
 
 ![Main Results](figs/main.png "Main Results")
+
+## Ablation Studies
+We conduct experiments of (a) w/ SA which replaces RoRA with Softmax Attention, (b) w/ LA which replaces RoRA with Linear Attention, (c) w/o Ro which removes RoPE, (d) w/o Gate which removes the gating module and (e) w/o skip which removes the skip connection module on datasets of Traffic, Electricity, ETTh1 and ETTh2. The modules of WaveRoRA are proved effective.
+
+![Ablation Results](figs/ablation.png "Ablation Results")
+
 
 # Getting Start🛫
 Create the following paths before you want to run one of the model: `./logs/LTSF/${model_name}/`. Then, run `./scripts/LTSF/${model_name}/${dataset}.sh`.
