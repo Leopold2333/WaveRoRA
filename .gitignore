@@ -8,7 +8,6 @@
 
 test.py
 predict.py
-scripts/Ablation
 *.log
 *.pdf
 *.svg
