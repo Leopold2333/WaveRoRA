@@ -87,19 +87,38 @@ if __name__ == '__main__':
 
     # Grad Searching
     search_space = {
-        "weather": {"learning_rate": [1e-4, 5e-5, 2e-4], "dropout": [0.1, 0.2, 0.3, 0.0]},
+        "weather": {
+            "learning_rate": [1e-4, 4e-5, 2e-4], 
+            "dropout": [0.1, 0.2, 0.3, 0.0]
+        },
         "traffic": {
             "learning_rate": [1e-3, 1.5e-3, 8e-4], 
             "dropout": [0.2, 0.3, 0.1],
-            # "n_heads": [8],
-            # "wavelet_layers": [1]
         },
-        "electricity": {"learning_rate": [1e-3, 4e-4], "dropout": [0.2, 0.3, 0.1], "wavelet_layers": [1, 2, 3, 4, 5]},
-        "ETTh1": {"learning_rate": [1e-4, 5e-5, 2e-5], "dropout": [0.1, 0.2, 0.3, 0.0]},
-        "ETTh2": {"learning_rate": [1e-4, 5e-5, 2e-5], "dropout": [0.1, 0.2, 0.3, 0.0]},
-        "ETTm1": {"learning_rate": [1e-4, 5e-5, 2e-5], "dropout": [0.1, 0.2, 0.3, 0.0]},
-        "ETTm2": {"learning_rate": [1e-4, 5e-5, 2e-5], "dropout": [0.1, 0.2, 0.3, 0.0]},
-        "solar": {"learning_rate": [5e-4, 2e-4], "dropout": [0.1, 0.2, 0.3, 0.0], "wavelet_layers": [0, 3, 5]},
+        "electricity": {
+            "learning_rate": [1e-3, 4e-4], 
+            "dropout": [0.2, 0.3, 0.1]
+        },
+        "ETTh1": {
+            "learning_rate": [1e-4, 4e-5, 2e-5], 
+            "dropout": [0.1, 0.2, 0.3, 0.0]
+        },
+        "ETTh2": {
+            "learning_rate": [1e-4, 4e-5, 2e-5], 
+            "dropout": [0.1, 0.2, 0.3, 0.0]
+        },
+        "ETTm1": {
+            "learning_rate": [1e-4, 4e-5, 2e-5], 
+            "dropout": [0.1, 0.2, 0.3, 0.0]
+        },
+        "ETTm2": {
+            "learning_rate": [1e-4, 4e-5, 2e-5], 
+            "dropout": [0.1, 0.2, 0.3, 0.0]
+        },
+        "solar": {
+            "learning_rate": [5e-4, 2e-4, 1e-3], 
+            "dropout": [0.1, 0.2, 0.3, 0.0]
+        },
     }
     params = list(search_space[args.dataset_name].keys())
     print('>>>>>> Args in experiment: <<<<<<')
