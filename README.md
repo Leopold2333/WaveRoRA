@@ -4,6 +4,7 @@
 
 ![Python 3.10](https://img.shields.io/badge/python-3.10-green.svg?style=plastic)  ![PyTorch 2.3.0](https://img.shields.io/badge/Pytorch-2.3.0(+cu118)-da282a?style=plastic)  ![numpy 1.24.1](https://img.shields.io/badge/numpy-1.24.1-2ad82a?style=plastic)  ![pandas 2.0.3](https://img.shields.io/badge/pandas-2.0.3-39a8da?style=plastic)  ![optuna 3.6.1](https://img.shields.io/badge/optuna-3.6.1-a398da?style=plastic)  ![einops 0.7.0](https://img.shields.io/badge/einops-0.7.0-a938da?style=plastic)
 
+🚩**News**(Nov 21, 2024): We set the repo public for friendly discussion.
 
 🚩**News**(Oct 17, 2024): We upload the code to Github. The repo is currently private.
 
