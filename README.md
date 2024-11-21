@@ -1,6 +1,6 @@
 # WaveRoRa: Wavelet Rotary Router Attention for Multivariate Time Series Forecasting
 
-### This is the official implementation of **WaveRoRa: Wavelet Rotary Router Attention for Multivariate Time Series Forecasting**.
+### This is the official implementation of **[WaveRoRa: Wavelet Rotary Router Attention for Multivariate Time Series Forecasting](https://arxiv.org/abs/2410.22649)**.
 
 ![Python 3.10](https://img.shields.io/badge/python-3.10-green.svg?style=plastic)  ![PyTorch 2.3.0](https://img.shields.io/badge/Pytorch-2.3.0(+cu118)-da282a?style=plastic)  ![numpy 1.24.1](https://img.shields.io/badge/numpy-1.24.1-2ad82a?style=plastic)  ![pandas 2.0.3](https://img.shields.io/badge/pandas-2.0.3-39a8da?style=plastic)  ![optuna 3.6.1](https://img.shields.io/badge/optuna-3.6.1-a398da?style=plastic)  ![einops 0.7.0](https://img.shields.io/badge/einops-0.7.0-a938da?style=plastic)
 
