@@ -18,8 +18,11 @@
 # Model Architecture
 ![WaveRoRA](figs/arch.png "WaveRoRA")
 <div style="text-align: center;"><img src="figs/rora.png" alt="RoRA" width="50%"></div>
+
 # Results✅
+
 ## Main Results
+
 WaveRoRA gets superior predicting performance. Compared to iTransformer, WaveRoRA reduces the MSE by 5.91% and MAE by 3.50% on average.
 
 ![Main Results](figs/main.png "Main Results")
