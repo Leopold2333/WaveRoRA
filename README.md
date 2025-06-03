@@ -1,6 +1,6 @@
 # WaveRoRa: Wavelet Rotary Router Attention for Multivariate Time Series Forecasting
 
-### This is the official implementation of **[WaveRoRa: Wavelet Rotary Router Attention for Multivariate Time Series Forecasting](https://arxiv.org/abs/2410.22649)**.
+### This is the official implementation of **[WaveRoRa: Wavelet Rotary Router Attention for Multivariate Time Series Forecasting](https://arxiv.org/abs/2410.22649)**
 
 ![Python 3.10](https://img.shields.io/badge/python-3.10-green.svg?style=plastic)  ![PyTorch 2.3.0](https://img.shields.io/badge/Pytorch-2.3.0(+cu118)-da282a?style=plastic)  ![numpy 1.24.1](https://img.shields.io/badge/numpy-1.24.1-2ad82a?style=plastic)  ![pandas 2.0.3](https://img.shields.io/badge/pandas-2.0.3-39a8da?style=plastic)  ![optuna 3.6.1](https://img.shields.io/badge/optuna-3.6.1-a398da?style=plastic)  ![einops 0.7.0](https://img.shields.io/badge/einops-0.7.0-a938da?style=plastic)
 
@@ -18,8 +18,11 @@
 # Model Architecture
 ![WaveRoRA](figs/arch.png "WaveRoRA")
 <div style="text-align: center;"><img src="figs/rora.png" alt="RoRA" width="50%"></div>
+
 # Results✅
+
 ## Main Results
+
 WaveRoRA gets superior predicting performance. Compared to iTransformer, WaveRoRA reduces the MSE by 5.91% and MAE by 3.50% on average.
 
 ![Main Results](figs/main.png "Main Results")

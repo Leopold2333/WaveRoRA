@@ -8,6 +8,7 @@
 
 test.py
 predict.py
+transfer.py
 *.log
 *.pdf
 *.svg

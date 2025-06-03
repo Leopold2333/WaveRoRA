@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import math
 from layers.Transformer_EncDec import Encoder, EncoderLayer, AttentionLayer
-from layers.WaveRoRA_layer import WEncoderLayer
+from layers.WaveRoRA_layer import WEncoderLayer, GatedAttentionLayer
 from pytorch_wavelets import DWT1D, IDWT1D
 from layers.Attention import RouterAttention, LinearAttention, FullAttention
 
@@ -38,24 +38,40 @@ class Model(nn.Module):
 
             self.encoder = Encoder(
                 [WEncoderLayer(
-                    AttentionLayer(
+                    GatedAttentionLayer(
                         FullAttention(False, attention_dropout=configs.dropout,
                                       output_attention=False, rotary=configs.rotary,
                                       d_model=configs.d_model, n_heads=configs.n_heads), 
-                        configs.d_model
+                        d_model=configs.d_model,
+                        n_heads=configs.n_heads,
+                        residual=configs.residual,
+                        gate=configs.gate
                     ) if configs.attn_type == 'SA' else
-                    AttentionLayer(
+                    GatedAttentionLayer(
                         LinearAttention(attention_dropout=configs.dropout, rotary=configs.rotary,
                                         d_model=configs.d_model, n_heads=configs.n_heads),
-                        configs.d_model
+                        d_model=configs.d_model,
+                        n_heads=configs.n_heads,
+                        residual=configs.residual,
+                        gate=configs.gate
                     ) if configs.attn_type == 'LA' else 
-                    RouterAttention(router_num=router_num, 
-                                    d_model=configs.d_model,
-                                    n_heads=configs.n_heads, 
-                                    rotary=configs.rotary,
-                                    residual=configs.residual,
-                                    gate=configs.gate,
-                                    attention_dropout=configs.dropout),
+                    GatedAttentionLayer(
+                        RouterAttention(router_num=router_num,
+                                        d_model=configs.d_model, 
+                                        rotary=configs.rotary,
+                                        attention_dropout=configs.dropout),
+                        d_model=configs.d_model,
+                        n_heads=configs.n_heads,
+                        residual=configs.residual,
+                        gate=configs.gate
+                    ),
+                    # RouterAttention(router_num=router_num, 
+                    #                 d_model=configs.d_model,
+                    #                 n_heads=configs.n_heads, 
+                    #                 rotary=configs.rotary,
+                    #                 residual=configs.residual,
+                    #                 gate=configs.gate,
+                    #                 attention_dropout=configs.dropout),
                     d_model=configs.d_model,
                     d_ff=configs.d_ff,
                     expand=configs.wavelet_dim,

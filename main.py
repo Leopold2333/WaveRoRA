@@ -26,8 +26,8 @@ def objective(trial, args, search_params, data):
     torch.backends.cudnn.benchmark = False
 
     # parameters settings
-    args.learning_rate = trial.suggest_float("learning_rate", 0.0001, 0.0016, step=0.00007)
-    args.dropout = trial.suggest_float("dropout", 0.2, 0.4, step=0.05)
+    # args.learning_rate = trial.suggest_float("learning_rate", 0.0001, 0.0016, step=0.00007)
+    # args.dropout = trial.suggest_float("dropout", 0.2, 0.4, step=0.05)
     # args.n_heads = trial.suggest_int("n_heads", 2, 16, step=2)
     # args.wavelet_layers = trial.suggest_int("wavelet_layers", 2, 5, step=1)
     
@@ -131,7 +131,7 @@ if __name__ == '__main__':
                                 sampler=optuna.samplers.GridSampler(search_space[args.dataset_name]))
     # bind 'args' to 'objective' function
     objective_with_args = lambda trial: objective(trial, args, params, data)
-    study.optimize(objective_with_args, n_trials=12)
+    study.optimize(objective_with_args, n_trials=1)
     # print the best parameters and metrics
     print('Best parameters:', study.best_params)
     print('Best score:', study.best_value)

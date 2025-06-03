@@ -507,58 +507,24 @@ class LinearAttention(nn.Module):
 
 
 class RouterAttention(nn.Module):
-    """
-    Router Attention layer.
-    """
-    def __init__(self, router_num, d_model, n_heads=8,
-                 rotary=True, residual=True, gate=True,
+    def __init__(self, router_num, d_model, rotary=True,
                  attention_dropout=0.1, output_attention=False):
         super(RouterAttention, self).__init__()
         self.rotary = rotary
-        self.residual = residual
-        self.gate = gate
-        self.n_heads = n_heads
-
-        d_keys = d_model // n_heads
-        d_values = d_model // n_heads
-
-        self.query_projection = nn.Linear(d_model, d_keys * n_heads)
-        self.key_projection = nn.Linear(d_model, d_keys * n_heads)
-
-        if self.residual:
-            self.skip_projection = nn.Linear(d_values * n_heads, d_model)
         if self.rotary:
             self.rope = RoPE1d(feature_dim=router_num, reverse=True)
-
+        self.router_proj = nn.Parameter(torch.randn(router_num, d_model))
         self.drop1 = nn.Dropout(attention_dropout)
         self.drop2 = nn.Dropout(attention_dropout)
-        
-        # self.router_proj = nn.AdaptiveAvgPool1d(output_size=agent_num)
-        # self.router_proj = nn.Conv1d(seq_len, router_num, 3, 1, 1)
-        self.router_proj = nn.Parameter(torch.randn(router_num, d_model))
-        if self.gate:
-            self.z_projection = nn.Linear(d_model, d_model)
-            self.act = nn.SiLU()
-
-    def forward(self, x, *args, **kwargs):
-        # [B, L, D]
-        if self.gate:
-            z = self.act(self.z_projection(x))
-
-        queries = self.query_projection(x)
-        keys = self.key_projection(x)
-        
-        # [B, L, D] -> [B, a, D]
-        # routers = self.router_proj(queries.permute(0, 2, 1)).permute(0, 2, 1)
-        # routers = self.router_proj(x)
-        routers = self.router_proj.repeat(x.shape[0], 1, 1)
-
-        q = rearrange(queries,  "B L (H E) -> B H L E", H=self.n_heads)
-        k = rearrange(keys,     "B S (H E) -> B H S E", H=self.n_heads)
-        v = rearrange(x,        "B S (H D) -> B H S D", H=self.n_heads)
-        r = rearrange(routers,  "B r (H E) -> B H r E", H=self.n_heads)
-
-        scale = 1. / math.sqrt(k.shape[-1])
+    
+    def forward(self, queries, keys, values, attn_mask=None):
+        # [r, D'] -> [B, r, D']
+        routers = self.router_proj.repeat(queries.shape[0], 1, 1)
+        q = rearrange(queries,  "B L H E -> B H L E")
+        k = rearrange(keys,     "B S H E -> B H S E")
+        v = rearrange(values,   "B S H D -> B H S D")
+        r = rearrange(routers,  "B r (H E) -> B H r E", H=queries.shape[-2])
+        scale = 1. / math.sqrt(keys.shape[-1])
         router_scores = torch.einsum("BHrE, BHSE -> BHrS", r, k)
         router_A = torch.softmax(scale * router_scores, dim=-1)
         if self.rotary:
@@ -573,9 +539,5 @@ class RouterAttention(nn.Module):
             q_A = self.rope(q_A)
         q_A = self.drop2(q_A)
         V = torch.einsum("BHLr, BHrD -> BHLD", q_A, router_V)
-        V = rearrange(V, "B H L D -> B L (H D)")
-        if self.residual:
-            V = V + self.skip_projection(x)
-        if self.gate:
-            V = V * z
+        V = rearrange(V, "B H L D -> B L H D")
         return V, None
