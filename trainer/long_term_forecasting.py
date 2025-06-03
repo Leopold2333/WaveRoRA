@@ -224,10 +224,21 @@ class LTSF_Trainer():
 
     def test(self, test_loader, test_dataset):
         print('>>>>>>>start testing : {}>>>>>>>>>>>>>>>>>>>>>>>>>>'.format(self.setting))
-        self.model.load_state_dict(torch.load(os.path.join(self.c_path, "checkpoint.pth"), map_location=self.args.device))
-        # model = torch.load("/home/WaveRoRA/checkpoints/2025/traffic(M)_96_192_loss(mse)/WaveRoRA_bs32_el3_(dm512+df256)_nh8_dp0.10_(4-64-sym3)/checkpoint.pth", map_location="cuda:0")
-        # new_model = self.model.state_dict()
-        # self.model.load_state_dict(new_model)
+        if not os.path.exists(self.c_path):
+            os.makedirs(self.c_path)
+        if not os.path.exists(self.r_path):
+            os.makedirs(self.r_path)
+        # self.model.load_state_dict(torch.load(os.path.join(self.c_path, "checkpoint.pth"), map_location=self.args.device))
+        state_dict = torch.load(os.path.join(self.c_path, "checkpoint.pth"), map_location="cuda:0")
+        new_state_dict = {}
+        for k, v in state_dict.items():
+            # Loading model from DataParallel?
+            if k.startswith('module.'):
+                name = k[len('module.'):]  # 去掉开头的 'module.'
+            else:
+                name = k
+            new_state_dict[name] = v
+        self.model.load_state_dict(new_state_dict)
 
         self.model.eval()
         preds = []
@@ -281,8 +292,15 @@ class LTSF_Trainer():
 
     def predict(self, pred_loader):
         print('>>>>>>>start predicting : {}>>>>>>>>>>>>>>>>>>>>>>>>>>'.format(self.setting))
-        self.model.load_state_dict(torch.load(os.path.join(self.c_path, "checkpoint.pth"), map_location="cuda:0"))
-
+        # self.model.load_state_dict(torch.load(os.path.join(self.c_path, "checkpoint.pth"), map_location="cuda:0"))
+        state_dict = torch.load('model.pth', map_location="cuda:0")
+        new_state_dict = {}
+        for k, v in state_dict.items():
+            # Loading model from DataParallel?
+            name = k.replace('module.', '')
+            new_state_dict[name] = v
+        self.model.load_state_dict(new_state_dict)
+        
         preds = []
         trues = []
         inputs = []

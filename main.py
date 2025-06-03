@@ -88,7 +88,7 @@ if __name__ == '__main__':
     # Grad Searching
     search_space = {
         "weather": {
-            "learning_rate": [1e-4, 4e-5, 2e-4], 
+            "learning_rate": [1e-4, 4e-5], 
             "dropout": [0.1, 0.2, 0.3, 0.0]
         },
         "traffic": {
@@ -96,23 +96,23 @@ if __name__ == '__main__':
             "dropout": [0.2, 0.3, 0.1],
         },
         "electricity": {
-            "learning_rate": [1e-3, 4e-4], 
-            "dropout": [0.2, 0.3, 0.1]
+            "learning_rate": [1e-3], 
+            "dropout": [0.2,  0.1]
         },
         "ETTh1": {
-            "learning_rate": [1e-4, 4e-5, 2e-5], 
+            "learning_rate": [1e-4, 4e-5], 
             "dropout": [0.1, 0.2, 0.3, 0.0]
         },
         "ETTh2": {
-            "learning_rate": [1e-4, 4e-5, 2e-5], 
+            "learning_rate": [1e-4, 4e-5], 
             "dropout": [0.1, 0.2, 0.3, 0.0]
         },
         "ETTm1": {
-            "learning_rate": [1e-4, 4e-5, 2e-5], 
+            "learning_rate": [1e-4, 4e-5], 
             "dropout": [0.1, 0.2, 0.3, 0.0]
         },
         "ETTm2": {
-            "learning_rate": [1e-4, 4e-5, 2e-5], 
+            "learning_rate": [1e-4, 4e-5], 
             "dropout": [0.1, 0.2, 0.3, 0.0]
         },
         "solar": {
@@ -131,7 +131,7 @@ if __name__ == '__main__':
                                 sampler=optuna.samplers.GridSampler(search_space[args.dataset_name]))
     # bind 'args' to 'objective' function
     objective_with_args = lambda trial: objective(trial, args, params, data)
-    study.optimize(objective_with_args, n_trials=48)
+    study.optimize(objective_with_args, n_trials=12)
     # print the best parameters and metrics
     print('Best parameters:', study.best_params)
     print('Best score:', study.best_value)

@@ -11,18 +11,24 @@ from utils.rotation import RoPE1d
 from einops import rearrange
 
 class FullAttention(nn.Module):
-    def __init__(self, mask_flag=True, scale=None, attention_dropout=0.1, output_attention=False):
+    def __init__(self, mask_flag=True, scale=None, attention_dropout=0.1, output_attention=False,
+                 rotary=False, d_model=512, n_heads=8):
         super(FullAttention, self).__init__()
         self.scale = scale
         self.mask_flag = mask_flag
         self.output_attention = output_attention
         self.dropout = nn.Dropout(attention_dropout)
+        self.rotary = rotary
+        if self.rotary:
+            self.rope = RoPE1d(feature_dim=d_model // n_heads, reverse=True)
 
     def forward(self, queries, keys, values, attn_mask):
         B, L, H, E = queries.shape
         _, S, _, D = values.shape
         scale = self.scale or 1. / math.sqrt(E)
-
+        if self.rotary:
+            queries = self.rope(queries)
+            keys = self.rope(keys)
         scores = torch.einsum("blhe,bshe->bhls", queries, keys)
 
         if self.mask_flag:
@@ -472,19 +478,29 @@ class AutoCorrelationLayer(nn.Module):
 
 
 class LinearAttention(nn.Module):
-    def __init__(self, attention_dropout=0.1, output_attention=False) -> None:
+    def __init__(self, attention_dropout=0.1, rotary=False, d_model=512, n_heads=8) -> None:
         super().__init__()
         self.drop = nn.Dropout(attention_dropout)
         self.elu = nn.ELU()
+        self.rotary = rotary
+        if self.rotary:
+            self.rope = RoPE1d(feature_dim=d_model // n_heads, reverse=True)
         
-    def forward(self, queries, keys, values, attn_mask=None):
+    def forward(self, queries, keys, values, **kwargs):
         B, L, H, E = queries.shape
         _, S, _, D = values.shape
 
         queries = self.elu(queries) + 1
         keys = self.elu(keys) + 1
 
-        y = 1 / (queries @ keys.sum(dim=-2, keepdim=True).transpose(-2, -1) + 1e-6) # B H L S
+        if self.rotary:
+            q_rope = self.rope(queries, delta=None).permute(0, 2, 1, 3)   # B H L E
+            k_rope = self.rope(keys, delta=None).permute(0, 2, 1, 3)   # B H S E
+        else:
+            q_rope = queries.permute(0, 2, 1, 3)
+            k_rope = keys.permute(0, 2, 1, 3)
+
+        y = 1 / (q_rope @ k_rope.sum(dim=-2, keepdim=True).transpose(-2, -1) + 1e-6) # B H L S
         kv = self.drop((keys.transpose(-2, -1) * (L ** -0.5)) @ values) # B H E D
         x = queries @ kv * y    # B L H E
         return x, None

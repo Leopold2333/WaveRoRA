@@ -7,7 +7,7 @@ def add_transformer_parser(parser):
     parser.add_argument('--e_layers',           type=int,   default=3,              help='num of encoder layers')
     parser.add_argument('--d_layers',           type=int,   default=4,              help='num of decoder layers')
     parser.add_argument('--d_ff',               type=int,   default=256,            help='dimension of fcn')
-    parser.add_argument('--router_num',         type=int,   default=2,             help='router number')
+    parser.add_argument('--router_num',         type=int,   default=0,             help='router number')
     parser.add_argument('--distil',                         default=False, action='store_true', 
                         help='whether to use distilling in encoder for Crossformer and Informer')
     parser.add_argument('--dropout',            type=float, default=0.2,            help='dropout')

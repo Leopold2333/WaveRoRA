@@ -4,7 +4,7 @@ work_space="$project_path/main.py"
 model="iTransformer"
 seq_len=96
 loss="mse"
-random_seed=2024
+random_seed=2025
 e_layers=3
 
 d_model=512
@@ -25,7 +25,7 @@ dropout=0.1
 
 is_training=$1
 
-for pred_len in 96 192 336 720
+for pred_len in 96
 do
     log_file="logs/${model}/${random_seed}(${dataset_name})_${model}(${seq_len}-${pred_len})_el${e_layers}.log"
     python $work_space $model --is_training=$is_training --gpu=$gpu \
@@ -35,5 +35,5 @@ do
     --e_layers=$e_layers \
     --d_model=$d_model --d_ff=$d_ff \
     --learning_rate=$lr --dropout=$dropout \
-    > $log_file 2>&1
+    # > $log_file 2>&1
 done

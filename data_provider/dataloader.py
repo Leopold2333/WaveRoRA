@@ -17,13 +17,14 @@ def construct_borders(length:int, seq_len:int=336, pred_len:int=48, dataset_type
         num_train = int(length * 0.7)
         num_test = int(length * 0.2)
         num_vali = length - num_train - num_test
-        border1s = [0,          num_train - seq_len,    length - num_test - seq_len,    length - seq_len - pred_len]
+        window_len = seq_len + pred_len
+        border1s = [0,          num_train - window_len,    length - num_test - window_len,    length - seq_len - pred_len]
         border2s = [num_train,  num_train + num_vali,   length,                         length]
     return border1s, border2s
 
 def load_data(args):
     data_type_param = {
-        'train':    { 'shuffle_flag': True, 'drop_last': True, 'batch_size': args.batch_size },
+        'train':    { 'shuffle_flag': True, 'drop_last': False, 'batch_size': args.batch_size },
         'val':      { 'shuffle_flag': False, 'drop_last': True, 'batch_size': args.batch_size },
         'test':     { 'shuffle_flag': False, 'drop_last': True, 'batch_size': args.batch_size },
         'pred':     { 'shuffle_flag': False, 'drop_last': False, 'batch_size': 1 }

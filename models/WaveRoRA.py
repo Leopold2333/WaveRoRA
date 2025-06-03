@@ -26,7 +26,6 @@ class Model(nn.Module):
             temp_seq = torch.rand(1, 1, configs.seq_len)
             temp_seq_yl, temp_seq_yh = self.dwt(temp_seq)
             seq_len_J = [y.shape[-1] for y in temp_seq_yh] + [temp_seq_yl.shape[-1]]
-
             temp_pred = torch.rand(1, 1, configs.pred_len)
             temp_pred_yl, temp_pred_yh = self.dwt(temp_pred)
             pred_len_J = [y.shape[-1] for y in temp_pred_yh] + [temp_pred_yl.shape[-1]]
@@ -41,13 +40,15 @@ class Model(nn.Module):
                 [WEncoderLayer(
                     AttentionLayer(
                         FullAttention(False, attention_dropout=configs.dropout,
-                                    output_attention=False), 
+                                      output_attention=False, rotary=configs.rotary,
+                                      d_model=configs.d_model, n_heads=configs.n_heads), 
                         configs.d_model
                     ) if configs.attn_type == 'SA' else
                     AttentionLayer(
-                        LinearAttention(attention_dropout=configs.dropout),
+                        LinearAttention(attention_dropout=configs.dropout, rotary=configs.rotary,
+                                        d_model=configs.d_model, n_heads=configs.n_heads),
                         configs.d_model
-                    ) if configs.attn_type == 'LA' else
+                    ) if configs.attn_type == 'LA' else 
                     RouterAttention(router_num=router_num, 
                                     d_model=configs.d_model,
                                     n_heads=configs.n_heads, 
@@ -143,6 +144,7 @@ class Model(nn.Module):
             # [B, M, L/2^j] -> [B, M, 1, D]
             for i in range(len(yh)):
                 yh[i] = self.in_proj_h[i](yh[i]).unsqueeze(-2)
+            # yh[3] = torch.zeros_like(yh[3]).to(x_enc.device)
             yl = self.in_proj_l(yl).unsqueeze(-2)
             # [[B, M, 1, D]] -> [B, M, J, D]
             enc_in = torch.cat(yh + [yl], dim=-2)

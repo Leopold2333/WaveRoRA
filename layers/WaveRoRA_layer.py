@@ -29,6 +29,7 @@ class WEncoderLayer(nn.Module):
     def forward(self, x, attn_mask=None):
         # x: [B, M, J, D]
         new_x = rearrange(x, 'b m j d -> b m (j d)')
+        # new_x: [B, M, D']
         new_x = self.expand_projection(new_x)
         new_x, _ = self.attention1(
             new_x, new_x, new_x,

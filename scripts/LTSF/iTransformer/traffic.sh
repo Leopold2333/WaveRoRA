@@ -25,9 +25,9 @@ dropout=0.1
 
 is_training=$1
 
-for pred_len in 192 336 720
+for pred_len in 96
 do
-    log_file="logs/LTSF/${model}/${random_seed}(${dataset_name})_${model}(${seq_len}-${pred_len})_el${e_layers}.log"
+    log_file="logs/${model}/${random_seed}(${dataset_name})_${model}(${seq_len}-${pred_len})_el${e_layers}.log"
     python $work_space $model --is_training=$is_training --gpu=$gpu \
     --num_workers=4 --seed=$random_seed --batch_size=$batch_size --loss=$loss \
     --seq_len=$seq_len --pred_len=$pred_len --enc_in=$enc_in --use_norm \
@@ -35,5 +35,5 @@ do
     --e_layers=$e_layers \
     --d_model=$d_model --d_ff=$d_ff \
     --learning_rate=$lr --dropout=$dropout \
-    > $log_file 2>&1
+    # > $log_file 2>&1
 done
