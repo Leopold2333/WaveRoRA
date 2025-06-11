@@ -34,11 +34,11 @@ class GatedAttentionLayer(nn.Module):
         out, attn = self.inner_attention(q, k, v, attn_mask)
         out = out.reshape(B, L, -1)
         if self.residual:
-            v = out + self.skip_projection(values)
+            out = out + self.skip_projection(values)
         if self.gate:
-            v = v * self.act(self.z_projection(values))
+            out = out * self.act(self.z_projection(values))
 
-        return v, attn if self.output_attention else None
+        return out, attn if self.output_attention else None
 
 
 class WEncoderLayer(nn.Module):
