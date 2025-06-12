@@ -26,10 +26,12 @@ class FullAttention(nn.Module):
         B, L, H, E = queries.shape
         _, S, _, D = values.shape
         scale = self.scale or 1. / math.sqrt(E)
+        queries = rearrange(queries, "B L H E -> B H L E")
+        keys = rearrange(keys, "B S H E -> B H S E")
         if self.rotary:
             queries = self.rope(queries)
             keys = self.rope(keys)
-        scores = torch.einsum("blhe,bshe->bhls", queries, keys)
+        scores = torch.einsum("bhle,bhse->bhls", queries, keys)
 
         if self.mask_flag:
             if attn_mask is None:
@@ -39,7 +41,6 @@ class FullAttention(nn.Module):
 
         A = self.dropout(torch.softmax(scale * scores, dim=-1))
         V = torch.einsum("bhls,bshd->blhd", A, values)
-
         if self.output_attention:
             return (V.contiguous(), A)
         else:
@@ -486,23 +487,24 @@ class LinearAttention(nn.Module):
         if self.rotary:
             self.rope = RoPE1d(feature_dim=d_model // n_heads, reverse=True)
         
-    def forward(self, queries, keys, values, **kwargs):
+    def forward(self, queries, keys, values, *args, **kwargs):
         B, L, H, E = queries.shape
         _, S, _, D = values.shape
-
         queries = self.elu(queries) + 1
         keys = self.elu(keys) + 1
-
+        q = rearrange(queries,  "B L H E -> B H L E")
+        k = rearrange(keys,     "B S H E -> B H S E")
+        v = rearrange(values,   "B S H D -> B H S D")
         if self.rotary:
-            q_rope = self.rope(queries, delta=None).permute(0, 2, 1, 3)   # B H L E
-            k_rope = self.rope(keys, delta=None).permute(0, 2, 1, 3)   # B H S E
+            q_rope = self.rope(q)
+            k_rope = self.rope(k)
         else:
             q_rope = queries.permute(0, 2, 1, 3)
             k_rope = keys.permute(0, 2, 1, 3)
 
-        y = 1 / (q_rope @ k_rope.sum(dim=-2, keepdim=True).transpose(-2, -1) + 1e-6) # B H L S
-        kv = self.drop((keys.transpose(-2, -1) * (L ** -0.5)) @ values) # B H E D
-        x = queries @ kv * y    # B L H E
+        y = 1 / (q @ k.sum(dim=-2, keepdim=True).transpose(-2, -1) + 1e-6) # B H L S
+        kv = self.drop((k_rope.transpose(-2, -1) * (L ** -0.5)) @ v) # B H E D
+        x = q_rope @ kv * y    # B L H E
         return x, None
 
 

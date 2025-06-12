@@ -104,13 +104,16 @@ class Model(nn.Module):
             )
             self.encoder = Encoder(
                 [EncoderLayer(
-                    RouterAttention(router_num=router_num, 
-                                d_model=configs.d_model,
-                                n_heads=configs.n_heads, 
-                                rotary=configs.rotary,
-                                residual=configs.residual,
-                                gate=configs.gate,
-                                attention_dropout=configs.dropout),
+                    GatedAttentionLayer(
+                        RouterAttention(router_num=router_num,
+                                        d_model=configs.d_model, 
+                                        rotary=configs.rotary,
+                                        attention_dropout=configs.dropout),
+                        d_model=configs.d_model,
+                        n_heads=configs.n_heads,
+                        residual=configs.residual,
+                        gate=configs.gate
+                    ),
                     d_model=configs.d_model,
                     d_ff=configs.d_ff,
                     dropout=configs.dropout,
@@ -121,18 +124,21 @@ class Model(nn.Module):
             self.out_proj = nn.Linear(configs.d_model, configs.pred_len)
         elif configs.domain == 'F':
             self.in_proj = nn.Sequential(
-                nn.Linear(configs.seq_len//2+1, configs.d_model),
+                nn.Linear(configs.seq_len+2, configs.d_model),
                 nn.Dropout(configs.dropout)
             )
             self.encoder = Encoder(
                 [EncoderLayer(
-                    RouterAttention(router_num=router_num, 
-                                d_model=configs.d_model,
-                                n_heads=configs.n_heads, 
-                                rotary=configs.rotary,
-                                residual=configs.residual,
-                                gate=configs.gate,
-                                attention_dropout=configs.dropout),
+                    GatedAttentionLayer(
+                        RouterAttention(router_num=router_num,
+                                        d_model=configs.d_model, 
+                                        rotary=configs.rotary,
+                                        attention_dropout=configs.dropout),
+                        d_model=configs.d_model,
+                        n_heads=configs.n_heads,
+                        residual=configs.residual,
+                        gate=configs.gate
+                    ),
                     d_model=configs.d_model,
                     d_ff=configs.d_ff,
                     dropout=configs.dropout,
@@ -140,7 +146,7 @@ class Model(nn.Module):
                 ) for _ in range(configs.e_layers)],
                 # norm_layer=torch.nn.LayerNorm(configs.d_model*(configs.wavelet_layers+1))
             )
-            self.out_proj = nn.Linear(configs.d_model, configs.pred_len//2+1)
+            self.out_proj = nn.Linear(configs.d_model, configs.pred_len+2)
 
     def forward(self, x_enc, x_mark_enc, x_dec, x_mark_dec):
         # x_enc: [B, L, M]
@@ -181,11 +187,12 @@ class Model(nn.Module):
             output = self.out_proj(enc_out).permute(0, 2, 1)[..., :M]
         elif self.domain == 'F':
             x_enc = torch.fft.rfft(x_enc, dim=1)
+            x_enc = torch.cat([x_enc.real, x_enc.imag], dim=1)
             enc_in = self.in_proj(x_enc.permute(0, 2, 1))
             enc_out, _ = self.encoder(enc_in)
             output = self.out_proj(enc_out).permute(0, 2, 1)[..., :M]
-            imaginary_part = torch.zeros_like(output)
-            output = torch.stack((output, imaginary_part), dim=1)  # (real, imag)
+            output_real, output_imag = torch.split(output, split_size_or_sections=self.pred_len//2+1, dim=1)
+            output = torch.complex(output_real, output_imag)  # (real, imag)
             output = torch.fft.irfft(output, dim=1)
         if self.use_norm:
             # De-Normalization from Non-stationary Transformer
