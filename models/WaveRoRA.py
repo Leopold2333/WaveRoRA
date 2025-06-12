@@ -40,8 +40,9 @@ class Model(nn.Module):
                 [WEncoderLayer(
                     GatedAttentionLayer(
                         FullAttention(False, attention_dropout=configs.dropout,
-                                      output_attention=False, rotary=configs.rotary,
-                                      d_model=configs.d_model, n_heads=configs.n_heads), 
+                                      output_attention=configs.output_attention, 
+                                      rotary=configs.rotary, d_model=configs.d_model, 
+                                      n_heads=configs.n_heads), 
                         d_model=configs.d_model,
                         n_heads=configs.n_heads,
                         residual=configs.residual,
@@ -59,19 +60,13 @@ class Model(nn.Module):
                         RouterAttention(router_num=router_num,
                                         d_model=configs.d_model, 
                                         rotary=configs.rotary,
-                                        attention_dropout=configs.dropout),
+                                        attention_dropout=configs.dropout,
+                                        output_attention=configs.output_attention),
                         d_model=configs.d_model,
                         n_heads=configs.n_heads,
                         residual=configs.residual,
                         gate=configs.gate
                     ),
-                    # RouterAttention(router_num=router_num, 
-                    #                 d_model=configs.d_model,
-                    #                 n_heads=configs.n_heads, 
-                    #                 rotary=configs.rotary,
-                    #                 residual=configs.residual,
-                    #                 gate=configs.gate,
-                    #                 attention_dropout=configs.dropout),
                     d_model=configs.d_model,
                     d_ff=configs.d_ff,
                     expand=configs.wavelet_dim,
@@ -171,7 +166,7 @@ class Model(nn.Module):
             # [[B, M, 1, D]] -> [B, M, J, D]
             enc_in = torch.cat(yh + [yl], dim=-2)
 
-            enc_out, _ = self.encoder(enc_in)
+            enc_out, attn = self.encoder(enc_in)
 
             enc_out = list(torch.unbind(enc_out, dim=-2))
             
@@ -182,14 +177,14 @@ class Model(nn.Module):
         elif self.domain == 'T':
             # [B, L, M] -> [B, M, D]
             enc_in = self.in_proj(x_enc.permute(0, 2, 1))
-            enc_out, _ = self.encoder(enc_in)
+            enc_out, attn = self.encoder(enc_in)
             # [B, L, D] -> [B, H, M]
             output = self.out_proj(enc_out).permute(0, 2, 1)[..., :M]
         elif self.domain == 'F':
             x_enc = torch.fft.rfft(x_enc, dim=1)
             x_enc = torch.cat([x_enc.real, x_enc.imag], dim=1)
             enc_in = self.in_proj(x_enc.permute(0, 2, 1))
-            enc_out, _ = self.encoder(enc_in)
+            enc_out, attn = self.encoder(enc_in)
             output = self.out_proj(enc_out).permute(0, 2, 1)[..., :M]
             output_real, output_imag = torch.split(output, split_size_or_sections=self.pred_len//2+1, dim=1)
             output = torch.complex(output_real, output_imag)  # (real, imag)
@@ -198,4 +193,4 @@ class Model(nn.Module):
             # De-Normalization from Non-stationary Transformer
             output = output * (stdev[:, 0, :].unsqueeze(1).repeat(1, self.pred_len, 1))
             output = output + (means[:, 0, :].unsqueeze(1).repeat(1, self.pred_len, 1))
-        return output, None
+        return output, attn

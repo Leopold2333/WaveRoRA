@@ -518,6 +518,7 @@ class RouterAttention(nn.Module):
         self.router_proj = nn.Parameter(torch.randn(router_num, d_model))
         self.drop1 = nn.Dropout(attention_dropout)
         self.drop2 = nn.Dropout(attention_dropout)
+        self.output_attention = output_attention
     
     def forward(self, queries, keys, values, attn_mask=None):
         # [r, D'] -> [B, r, D']
@@ -542,4 +543,8 @@ class RouterAttention(nn.Module):
         q_A = self.drop2(q_A)
         V = torch.einsum("BHLr, BHrD -> BHLD", q_A, router_V)
         V = rearrange(V, "B H L D -> B L H D")
-        return V, None
+        if not self.output_attention:
+            return V, None
+        else:
+            scores = torch.einsum("BHLr, BHrS -> BHLS", q_A, router_A)
+            return V, scores

@@ -5,11 +5,10 @@ from einops import rearrange
 
 class GatedAttentionLayer(nn.Module):
     def __init__(self, attention, d_model, n_heads=8, d_keys=None, d_values=None,
-                 residual=True, gate=True, output_attention=False):
+                 residual=True, gate=True):
         super(GatedAttentionLayer, self).__init__()
         self.residual = residual
         self.gate = gate
-        self.output_attention = output_attention
         d_keys = d_keys or (d_model // n_heads)
         d_values = d_values or (d_model // n_heads)
         if self.residual:
@@ -38,7 +37,7 @@ class GatedAttentionLayer(nn.Module):
         if self.gate:
             out = out * self.act(self.z_projection(values))
 
-        return out, attn if self.output_attention else None
+        return out, attn
 
 
 class WEncoderLayer(nn.Module):
@@ -69,7 +68,7 @@ class WEncoderLayer(nn.Module):
         new_x = rearrange(x, 'b m j d -> b m (j d)')
         # new_x: [B, M, D']
         new_x = self.expand_projection(new_x)
-        new_x, _ = self.attention1(
+        new_x, attn = self.attention1(
             new_x, new_x, new_x,
             attn_mask=attn_mask
         )
@@ -82,7 +81,7 @@ class WEncoderLayer(nn.Module):
             new_x[i] = self.wb[i](x[i], new_x[i]).unsqueeze(-2)
         y = torch.cat(new_x, dim=-2)
 
-        return y, None
+        return y, attn
 
 
 class WaveNormBlock(nn.Module):

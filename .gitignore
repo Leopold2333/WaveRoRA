@@ -12,3 +12,4 @@ transfer.py
 *.log
 *.pdf
 *.svg
+/scripts/Ablation

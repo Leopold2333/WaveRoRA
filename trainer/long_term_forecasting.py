@@ -5,6 +5,7 @@ from torch import optim
 from torch.optim import lr_scheduler 
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 
 from utils.tools import EarlyStopping, adjust_learning_rate
 from utils.loss import get_loss_MSE, get_loss_MAE, get_loss_MAPE
@@ -245,7 +246,7 @@ class LTSF_Trainer():
         trues = []
         mse_list, mae_list, mape_list = [], [], []
         with torch.no_grad():
-            for _, (batch_x, batch_y, batch_x_mark, batch_y_mark) in enumerate(test_loader):
+            for i, (batch_x, batch_y, batch_x_mark, batch_y_mark) in enumerate(test_loader):
                 batch_x = batch_x.float().to(self.args.device)
                 batch_y = batch_y.float().to(self.args.device)
 
@@ -258,7 +259,33 @@ class LTSF_Trainer():
                 if hasattr(self.args, 'use_gcn') and self.args.use_gcn:
                     outputs, _, _ = outputs
                 else:
-                    outputs, _ = outputs
+                    outputs, attn = outputs
+                    if hasattr(self.args, 'output_attention') and self.args.output_attention and \
+                        attn is not None and i==3:
+                        for a in range(len(attn)):
+                            attn[a] = attn[a].unsqueeze(-1)
+                        attn = torch.cat(attn, dim=-1)  # B H L S 3
+                        
+                        attn = torch.mean(attn, dim=-1)  # B H L S
+                        # attn = attn[...,0]
+                        attn = torch.mean(attn, dim=1).detach().cpu().numpy()  # B L S
+                        # attn = attn[-1][:,0].detach().cpu().numpy()
+                        fig, axs = plt.subplots(1, 1, figsize=(5.2,4.4))
+                        cax = axs.imshow(attn[9], cmap='inferno', \
+                                        vmin=-0.015 if self.args.attn_type=="RA" else -0.001, 
+                                        # vmax=0.17
+                                        )
+                        axs.set_xticks([])
+                        axs.set_yticks([])
+                        axs.set_title(f'Attention Scores of {"RoRA" if self.args.attn_type=="RA" else "SA"}', fontsize=16)
+                        plt.tight_layout()
+                        cbar = fig.colorbar(cax, ax=axs)
+                        cbar.ax.tick_params(labelsize=14)
+                        cbar.locator = ticker.MaxNLocator(integer=True, prune='lower', steps=[1, 2, 5, 10])
+                        cbar.ax.yaxis.set_major_locator(ticker.MultipleLocator(0.01))  # 设置步长为 0.01
+                        cbar.update_ticks()
+                        plt.savefig(f'attn-{self.args.model}-{self.args.seed}.pdf')
+                        exit()
 
                 f_dim = -1 if self.args.task == 'MS' else 0
                 outputs = outputs[:, -self.args.pred_len:, f_dim:]
