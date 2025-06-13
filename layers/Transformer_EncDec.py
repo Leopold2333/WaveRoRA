@@ -3,6 +3,43 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
+class GatedAttentionLayer(nn.Module):
+    def __init__(self, attention, d_model, n_heads=8, d_keys=None, d_values=None,
+                 residual=True, gate=True):
+        super(GatedAttentionLayer, self).__init__()
+        self.residual = residual
+        self.gate = gate
+        d_keys = d_keys or (d_model // n_heads)
+        d_values = d_values or (d_model // n_heads)
+        if self.residual:
+            self.skip_projection = nn.Linear(d_values * n_heads, d_model)
+        if self.gate:
+            self.z_projection = nn.Linear(d_model, d_model)
+            self.act = nn.SiLU()
+
+        self.inner_attention = attention
+        self.query_projection = nn.Linear(d_model, d_keys * n_heads)
+        self.key_projection = nn.Linear(d_model, d_keys * n_heads)
+        self.n_heads = n_heads
+
+    def forward(self, queries, keys, values, attn_mask=None):
+        B, L, _ = queries.shape
+        _, S, _ = keys.shape
+        # multi-head
+        q = self.query_projection(queries).view(B, L, self.n_heads, -1)
+        k = self.key_projection(keys).view(B, S, self.n_heads, -1)
+        v = values.view(B, S, self.n_heads, -1)
+
+        out, attn = self.inner_attention(q, k, v, attn_mask)
+        out = out.reshape(B, L, -1)
+        if self.residual:
+            out = out + self.skip_projection(values)
+        if self.gate:
+            out = out * self.act(self.z_projection(values))
+
+        return out, attn
+
+
 class AttentionLayer(nn.Module):
     def __init__(self, attention, d_model, n_heads=8, d_keys=None,
                  d_values=None):

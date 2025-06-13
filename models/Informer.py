@@ -4,6 +4,7 @@ import torch.nn.functional as F
 from layers.Embed import DataEmbedding, DataEmbedding_wo_pos, DataEmbedding_wo_temp, DataEmbedding_wo_pos_temp
 from layers.Transformer_EncDec import Encoder, EncoderLayer, Decoder, DecoderLayer, ConvLayer, AttentionLayer
 from layers.Attention import ProbAttention, RouterAttention
+from layers.Transformer_EncDec import GatedAttentionLayer
 
 
 class Model(nn.Module):
@@ -35,15 +36,17 @@ class Model(nn.Module):
                         ProbAttention(False, configs.factor, attention_dropout=configs.dropout,
                                       output_attention=configs.output_attention),
                         configs.d_model, configs.n_heads) if configs.attn_type=='SA' else\
-                        RouterAttention(mask_flag=False,
-                                        router_num=configs.router_num, 
-                                        d_model=configs.d_model,
-                                        n_heads=configs.n_heads, 
-                                        rotary=True,
-                                        residual=True,
-                                        gate=True,
-                                        attention_dropout=configs.dropout,
-                                        output_attention=configs.output_attention),
+                        GatedAttentionLayer(
+                            RouterAttention(router_num=configs.router_num,
+                                            d_model=configs.d_model, 
+                                            rotary=configs.rotary,
+                                            attention_dropout=configs.dropout,
+                                            output_attention=configs.output_attention),
+                            d_model=configs.d_model,
+                            n_heads=configs.n_heads,
+                            residual=configs.residual,
+                            gate=configs.gate
+                        ),
                     configs.d_model,
                     configs.d_ff,
                     dropout=configs.dropout,

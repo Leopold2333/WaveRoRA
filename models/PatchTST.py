@@ -1,8 +1,8 @@
 import torch
 import torch.nn as nn
 
-from layers.Transformer_EncDec import Encoder, EncoderLayer, AttentionLayer
-from layers.Attention import FullAttention
+from layers.Transformer_EncDec import Encoder, EncoderLayer, AttentionLayer, GatedAttentionLayer
+from layers.Attention import FullAttention, RouterAttention
 from layers.Embed import PatchEmbedding, TruncateModule
 from utils.tools import Flatten_Head
 
@@ -42,6 +42,17 @@ class Model(nn.Module):
                                       output_attention=configs.output_attention), 
                         configs.d_model, 
                         configs.n_heads
+                    ) if configs.attn_type=="SA" else
+                    GatedAttentionLayer(
+                        RouterAttention(router_num=configs.router_num,
+                                        d_model=configs.d_model, 
+                                        rotary=configs.rotary,
+                                        attention_dropout=configs.dropout,
+                                        output_attention=configs.output_attention),
+                        d_model=configs.d_model,
+                        n_heads=configs.n_heads,
+                        residual=configs.residual,
+                        gate=configs.gate
                     ),
                     configs.d_model,
                     configs.d_ff,

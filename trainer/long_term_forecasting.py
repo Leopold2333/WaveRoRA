@@ -230,7 +230,7 @@ class LTSF_Trainer():
         if not os.path.exists(self.r_path):
             os.makedirs(self.r_path)
         # self.model.load_state_dict(torch.load(os.path.join(self.c_path, "checkpoint.pth"), map_location=self.args.device))
-        state_dict = torch.load(os.path.join(self.c_path, "checkpoint.pth"), map_location="cuda:0")
+        state_dict = torch.load(os.path.join(self.c_path, "checkpoint.pth"), map_location=self.args.device)
         new_state_dict = {}
         for k, v in state_dict.items():
             # Loading model from DataParallel?
@@ -319,8 +319,8 @@ class LTSF_Trainer():
 
     def predict(self, pred_loader):
         print('>>>>>>>start predicting : {}>>>>>>>>>>>>>>>>>>>>>>>>>>'.format(self.setting))
-        # self.model.load_state_dict(torch.load(os.path.join(self.c_path, "checkpoint.pth"), map_location="cuda:0"))
-        state_dict = torch.load('model.pth', map_location="cuda:0")
+        # self.model.load_state_dict(torch.load(os.path.join(self.c_path, "checkpoint.pth"), map_location=self.args.device))
+        state_dict = torch.load(os.path.join(self.c_path, "checkpoint.pth"), map_location=self.args.device)
         new_state_dict = {}
         for k, v in state_dict.items():
             # Loading model from DataParallel?

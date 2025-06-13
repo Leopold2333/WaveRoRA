@@ -13,3 +13,4 @@ transfer.py
 *.pdf
 *.svg
 /scripts/Ablation
+/scripts/LTSF/predict.sh

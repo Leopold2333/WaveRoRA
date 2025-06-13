@@ -24,25 +24,6 @@ dropout=0.2
 
 is_training=$1
 
-# for wavelet_type in "sym3" "coif3"
-# do
-#     if [ $wavelet_type = "coif3" ]; then
-#         random_seed=2023
-#     elif [ $wavelet_type = "haar" ]; then
-#         random_seed=2024
-#     elif [ $wavelet_type = "sym3" ]; then
-#         random_seed=2025
-#     fi
-#     for dataset_name in ETTm1 ETTm2
-#     do
-#         file_name="${dataset_name}.csv"
-#         dataset_type=$dataset_name
-#         for wavelet_layers in 2 3 4
-#         do
-
-#         done
-#     done
-# done
 dataset_name=ETTm1
 file_name=ETTm1.csv
 dataset_type=ETTm1

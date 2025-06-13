@@ -1,8 +1,8 @@
 import torch
 import torch.nn as nn
 import math
-from layers.Transformer_EncDec import Encoder, EncoderLayer, AttentionLayer
-from layers.WaveRoRA_layer import WEncoderLayer, GatedAttentionLayer
+from layers.Transformer_EncDec import Encoder, EncoderLayer, AttentionLayer, GatedAttentionLayer
+from layers.WaveRoRA_layer import WEncoderLayer
 from pytorch_wavelets import DWT1D, IDWT1D
 from layers.Attention import RouterAttention, LinearAttention, FullAttention
 
