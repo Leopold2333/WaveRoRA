@@ -1,0 +1,16 @@
+.vscode
+/data
+/checkpoints
+/results
+/predictions
+**/__pycache__/
+/logs
+
+test.py
+predict.py
+transfer.py
+*.log
+*.pdf
+*.svg
+/scripts/Ablation
+/scripts/LTSF/predict.sh
