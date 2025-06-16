@@ -28,7 +28,7 @@ dropout=0.1
 is_training=$1
 
 wavelet_type=coif3
-for pred_len in 96
+for pred_len in 96 192 336 720
 do
     if [ "$pred_len" -eq 96 ]; then
         lr="1e-4"
@@ -50,6 +50,6 @@ do
     --dataset_name=$dataset_name --file_name=$file_name --root_path=$root_path --dataset_type=$dataset_type \
     --e_layers=$e_layers --wavelet_layers=$wavelet_layers --wavelet_type=$wavelet_type --wavelet_mode=zero \
     --d_model=$d_model --d_ff=$d_ff --wavelet_dim=$w_dim --ks=3 \
-    --learning_rate=$lr --dropout=$dropout --output_attention \
+    --learning_rate=$lr --dropout=$dropout \
     # > $log_file 2>&1
 done
